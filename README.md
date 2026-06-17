@@ -1,36 +1,60 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# IBF – Innovator Bridge Foundry
 
-## Getting Started
+The ultimate platform for founders to launch projects and for students to gain real-world experience. Built for speed, security, and real-time collaboration.
 
-First, run the development server:
+## Features
+- **Glassmorphism UI**: Modern aesthetic built with Tailwind CSS.
+- **Authentication Gate**: Fully protected routes using NextAuth.
+- **Role-based Dashboards**: Custom views for Founders and Students.
+- **Pagination**: Scalable cursor-based pagination for large datasets.
+- **Real-time Chat**: Powered by Socket.io.
+- **Email Notifications**: Setup with Nodemailer.
+- **Security Headers & Analytics**: Production-ready.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Prerequisites
+- Node.js >= 18
+- PostgreSQL Database
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Setup Instructions
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. **Install Dependencies**
+   ```bash
+   npm install
+   ```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+2. **Configure Environment Variables**
+   Create a `.env` file based on your `.env.local` or setup:
+   ```env
+   DATABASE_URL="postgres://..."
+   NEXTAUTH_SECRET="your_strong_secret"
+   NEXTAUTH_URL="http://localhost:3000"
+   
+   # Optional: Email Notifications
+   EMAIL_SERVER_HOST="smtp.example.com"
+   EMAIL_SERVER_PORT="587"
+   EMAIL_SERVER_USER="user"
+   EMAIL_SERVER_PASSWORD="password"
+   EMAIL_FROM="noreply@ibf.com"
+   ```
 
-## Learn More
+3. **Database Setup**
+   ```bash
+   npx prisma db push
+   npx prisma generate
+   ```
 
-To learn more about Next.js, take a look at the following resources:
+4. **Run the Server**
+   ```bash
+   npm run dev
+   ```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Deployment
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Vercel Deployment
+1. Connect your repository to Vercel.
+2. Ensure you have the `vercel.json` included in your root repository to handle WebSocket rewrites.
+3. If Socket.io requires an independent long-running server, it's recommended to deploy the custom Node server on Railway/Render and the Next.js frontend on Vercel.
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+**Build Scripts:**
+- `"build": "next build"`
+- `"start": "NODE_ENV=production node server.js"`

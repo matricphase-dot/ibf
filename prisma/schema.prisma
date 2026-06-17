@@ -1,0 +1,109 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  password     String
+  name         String
+  role         Role
+  avatar       String?
+  bio          String?
+  skills       String[]
+  company      String?
+  createdAt    DateTime  @default(now())
+  projects     Project[]  @relation("FounderProjects")
+  applications Application[]
+  sentMessages DirectMessage[] @relation("Sender")
+  receivedMessages DirectMessage[] @relation("Receiver")
+  generalMessages GeneralMessage[]
+
+  @@index([email])
+}
+
+model Project {
+  id            String      @id @default(cuid())
+  title         String
+  description   String
+  requiredSkills String[]
+  deadline      DateTime?
+  status        ProjectStatus @default(OPEN)
+  founderId     String
+  founder       User        @relation("FounderProjects", fields: [founderId], references: [id])
+  applications  Application[]
+  chat          DirectChat?
+
+  @@index([status])
+  @@index([founderId])
+}
+
+model Application {
+  id          String        @id @default(cuid())
+  coverLetter String?
+  status      ApplicationStatus @default(PENDING)
+  studentId   String
+  student     User          @relation(fields: [studentId], references: [id])
+  projectId   String
+  project     Project       @relation(fields: [projectId], references: [id])
+  createdAt   DateTime      @default(now())
+
+  @@index([projectId])
+  @@index([studentId])
+  @@index([status])
+}
+
+model DirectChat {
+  id        String          @id @default(cuid())
+  projectId String          @unique
+  project   Project         @relation(fields: [projectId], references: [id])
+  messages  DirectMessage[]
+}
+
+model DirectMessage {
+  id         String   @id @default(cuid())
+  chatId     String
+  chat       DirectChat @relation(fields: [chatId], references: [id])
+  senderId   String
+  sender     User     @relation("Sender", fields: [senderId], references: [id])
+  receiverId String
+  receiver   User     @relation("Receiver", fields: [receiverId], references: [id])
+  text       String
+  isRead     Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  @@index([chatId])
+  @@index([createdAt])
+}
+
+model GeneralMessage {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  text      String
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+}
+
+enum Role {
+  FOUNDER
+  STUDENT
+}
+
+enum ProjectStatus {
+  OPEN
+  CLOSED
+  COMPLETED
+}
+
+enum ApplicationStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
