@@ -1,3 +1,9 @@
+databases:
+  - name: founder-student-db
+    databaseName: founder_student
+    user: db_user
+    plan: free
+
 services:
   - type: web
     name: founder-student-hub
@@ -7,7 +13,9 @@ services:
     startCommand: npm run start
     envVars:
       - key: DATABASE_URL
-        sync: false
+        fromDatabase:
+          name: founder-student-db
+          property: connectionString
       - key: NEXTAUTH_SECRET
         generateValue: true
       - key: NODE_ENV
