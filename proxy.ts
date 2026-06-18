@@ -71,9 +71,12 @@ export default withAuth(
         const isNextAuthPath = pathname.startsWith("/api/auth/");
         const isRegisterApi = pathname === "/api/register";
         const isProjectsApi = pathname === "/api/projects";
+        
+        // Allow unauthenticated access to /projects/[id] but NOT /projects/new
+        const isProjectDetail = pathname.match(/^\/projects\/[^/]+$/) !== null && pathname !== '/projects/new';
 
         // Let public pages and registration/auth APIs pass without a token
-        if (isPublicPath || isNextAuthPath || isRegisterApi || isProjectsApi) {
+        if (isPublicPath || isNextAuthPath || isRegisterApi || isProjectsApi || isProjectDetail) {
           return true;
         }
 

@@ -3,7 +3,8 @@
 import { useSession, signOut } from "next-auth/react";
 import Link from "next/link";
 import { useState } from "react";
-import { Zap, Menu, X, LogIn, UserPlus, LogOut, LayoutDashboard, FolderOpen, MessageCircle, User } from "lucide-react";
+import { Zap, Menu, X, LogIn, UserPlus, LogOut, LayoutDashboard, FolderOpen, MessageCircle, User, Sparkles } from "lucide-react";
+import NotificationBell from "./NotificationBell";
 
 export default function NavBar() {
   const { data: session, status } = useSession();
@@ -12,6 +13,9 @@ export default function NavBar() {
 
   const navLinks = [
     { href: "/projects", label: "Projects", icon: <FolderOpen size={15} /> },
+    ...(status === "authenticated"
+      ? [{ href: "/matches", label: "Matches", icon: <Sparkles size={15} /> }]
+      : []),
     ...(status !== "authenticated" || (session?.user as any)?.role === "FOUNDER"
       ? [{ href: "/dashboard", label: "Dashboard", icon: <LayoutDashboard size={15} /> }]
       : []),
@@ -51,40 +55,43 @@ export default function NavBar() {
           {status === "loading" ? (
             <div className="w-24 h-9 rounded-xl animate-pulse" style={{ background: "rgba(255,255,255,0.1)" }} />
           ) : session?.user ? (
-            <div className="relative">
-              <button
-                onClick={() => setUserMenuOpen(!userMenuOpen)}
-                className="flex items-center gap-2 px-3 py-2 rounded-xl border border-white/10 hover:border-white/30 transition-all duration-200"
-                style={{ background: "rgba(255,255,255,0.05)" }}>
-                <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold"
-                  style={{ background: "linear-gradient(135deg, #c026d3, #06b6d4)" }}>
-                  {session.user.name?.[0]?.toUpperCase() ?? "U"}
-                </div>
-                <span className="text-sm text-gray-200 max-w-24 truncate">{session.user.name ?? session.user.email}</span>
-              </button>
-              {userMenuOpen && (
-                <div className="absolute right-0 top-12 w-48 rounded-2xl border border-white/10 shadow-2xl p-1 z-50"
-                  style={{ background: "rgba(10,10,18,0.97)", backdropFilter: "blur(20px)" }}>
-                  <Link href="/profile"
-                    onClick={() => setUserMenuOpen(false)}
-                    className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-gray-300 hover:text-white hover:bg-white/10 transition-all">
-                    <User size={15} /> My Profile
-                  </Link>
-                  {session.user && (session.user as any).role === "FOUNDER" && (
-                    <Link href="/dashboard"
+            <div className="flex items-center gap-2">
+              <NotificationBell />
+              <div className="relative">
+                <button
+                  onClick={() => setUserMenuOpen(!userMenuOpen)}
+                  className="flex items-center gap-2 px-3 py-2 rounded-xl border border-white/10 hover:border-white/30 transition-all duration-200"
+                  style={{ background: "rgba(255,255,255,0.05)" }}>
+                  <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold"
+                    style={{ background: "linear-gradient(135deg, #c026d3, #06b6d4)" }}>
+                    {session.user.name?.[0]?.toUpperCase() ?? "U"}
+                  </div>
+                  <span className="text-sm text-gray-200 max-w-24 truncate">{session.user.name ?? session.user.email}</span>
+                </button>
+                {userMenuOpen && (
+                  <div className="absolute right-0 top-12 w-48 rounded-2xl border border-white/10 shadow-2xl p-1 z-50"
+                    style={{ background: "rgba(10,10,18,0.97)", backdropFilter: "blur(20px)" }}>
+                    <Link href="/profile"
                       onClick={() => setUserMenuOpen(false)}
                       className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-gray-300 hover:text-white hover:bg-white/10 transition-all">
-                      <LayoutDashboard size={15} /> Dashboard
+                      <User size={15} /> My Profile
                     </Link>
-                  )}
-                  <div className="border-t border-white/10 my-1" />
-                  <button
-                    onClick={() => { setUserMenuOpen(false); signOut({ callbackUrl: "/" }); }}
-                    className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-all">
-                    <LogOut size={15} /> Sign Out
-                  </button>
-                </div>
-              )}
+                    {session.user && (session.user as any).role === "FOUNDER" && (
+                      <Link href="/dashboard"
+                        onClick={() => setUserMenuOpen(false)}
+                        className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-gray-300 hover:text-white hover:bg-white/10 transition-all">
+                        <LayoutDashboard size={15} /> Dashboard
+                      </Link>
+                    )}
+                    <div className="border-t border-white/10 my-1" />
+                    <button
+                      onClick={() => { setUserMenuOpen(false); signOut({ callbackUrl: "/" }); }}
+                      className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-all">
+                      <LogOut size={15} /> Sign Out
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           ) : (
             <>

@@ -12,7 +12,22 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const { title, description, requiredSkills, deadline } = body;
+    const {
+      title,
+      description,
+      requiredSkills,
+      deadline,
+      domain,
+      stage,
+      problemStatement,
+      solutionOverview,
+      equity,
+      stipend,
+      engagementType,
+      commitmentHours,
+      duration,
+      milestones,
+    } = body;
 
     if (!title || !description) {
       return NextResponse.json({ error: "Title and description are required" }, { status: 400 });
@@ -22,9 +37,19 @@ export async function POST(req: Request) {
       data: {
         title,
         description,
-        requiredSkills,
+        requiredSkills: requiredSkills || [],
         deadline: deadline ? new Date(deadline) : null,
         founderId: (session.user as any).id,
+        domain: domain || null,
+        stage: stage || null,
+        problemStatement: problemStatement || null,
+        solutionOverview: solutionOverview || null,
+        equity: equity || null,
+        stipend: stipend || null,
+        engagementType: engagementType || null,
+        commitmentHours: commitmentHours ? Number(commitmentHours) : null,
+        duration: duration ? Number(duration) : null,
+        milestones: milestones || [],
       },
     });
 

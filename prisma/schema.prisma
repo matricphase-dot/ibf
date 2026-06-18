@@ -17,9 +17,19 @@ model User {
   bio          String?
   skills       String[]
   company      String?
+  portfolioUrl String?
+  goals        String?
+  interests    String[]
+  availability String?
+  pastVentures String?
   createdAt    DateTime  @default(now())
+  
   projects     Project[]  @relation("FounderProjects")
   applications Application[]
+  connectionsAsStudent Connection[] @relation("StudentConnections")
+  connectionsAsFounder Connection[] @relation("FounderConnections")
+  notifications Notification[]
+  
   sentMessages DirectMessage[] @relation("Sender")
   receivedMessages DirectMessage[] @relation("Receiver")
   generalMessages GeneralMessage[]
@@ -28,19 +38,62 @@ model User {
 }
 
 model Project {
-  id            String      @id @default(cuid())
-  title         String
-  description   String
-  requiredSkills String[]
-  deadline      DateTime?
-  status        ProjectStatus @default(OPEN)
-  founderId     String
-  founder       User        @relation("FounderProjects", fields: [founderId], references: [id])
-  applications  Application[]
-  chat          DirectChat?
+  id               String      @id @default(cuid())
+  title            String
+  description      String
+  domain           String?
+  stage            String?
+  problemStatement String?
+  solutionOverview String?
+  currentTeam      String?
+  equity           String?
+  stipend          String?
+  engagementType   String?
+  commitmentHours  Int?
+  duration         Int?
+  milestones       String[]
+  requiredSkills   String[]
+  deadline         DateTime?
+  status           ProjectStatus @default(OPEN)
+  
+  founderId        String
+  founder          User        @relation("FounderProjects", fields: [founderId], references: [id])
+  
+  applications     Application[]
+  connections      Connection[]
+  chat             DirectChat?
 
   @@index([status])
   @@index([founderId])
+}
+
+model Connection {
+  id          String           @id @default(cuid())
+  studentId   String
+  student     User             @relation("StudentConnections", fields: [studentId], references: [id])
+  founderId   String
+  founder     User             @relation("FounderConnections", fields: [founderId], references: [id])
+  projectId   String
+  project     Project          @relation(fields: [projectId], references: [id])
+  status      ConnectionStatus @default(PENDING)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@index([studentId, projectId])
+  @@index([founderId, status])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  type      String
+  message   String
+  isRead    Boolean  @default(false)
+  link      String?
+  createdAt DateTime @default(now())
+
+  @@index([userId, isRead])
 }
 
 model Application {
@@ -103,6 +156,12 @@ enum ProjectStatus {
 }
 
 enum ApplicationStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+enum ConnectionStatus {
   PENDING
   ACCEPTED
   REJECTED

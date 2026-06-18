@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { Briefcase, Clock, Tag, Send } from "lucide-react";
 import { format } from "date-fns";
+import Link from "next/link";
 
 export default function ProjectsPage() {
   const { data: session } = useSession();
@@ -93,9 +94,11 @@ export default function ProjectsPage() {
               </span>
             </div>
 
-            <h3 className="text-xl font-bold text-white mb-2 group-hover:text-indigo-400 transition-colors">
-              {project.title}
-            </h3>
+            <Link href={`/projects/${project.id}`}>
+              <h3 className="text-xl font-bold text-white mb-2 group-hover:text-indigo-400 transition-colors cursor-pointer">
+                {project.title}
+              </h3>
+            </Link>
             <p className="text-gray-400 text-sm mb-4 line-clamp-3">
               {project.description}
             </p>

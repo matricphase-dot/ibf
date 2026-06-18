@@ -5,13 +5,41 @@ import { NextResponse } from "next/server";
 
 export async function GET(
   req: Request,
-  { params }: { params: Promise<{ projectId: string }> }
+  { params }: { params: any }
 ) {
   try {
     const session = await getServerSession(authOptions);
     if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const { projectId } = await params;
+    const userId = (session.user as any).id;
+
+    // Gatekeep access: Only project founder or accepted student can access this chat
+    const project = await prisma.project.findUnique({
+      where: { id: projectId },
+      select: { founderId: true },
+    });
+
+    if (!project) {
+      return NextResponse.json({ error: "Project not found" }, { status: 404 });
+    }
+
+    const isFounder = project.founderId === userId;
+    const isAcceptedStudent = await prisma.connection.findFirst({
+      where: {
+        projectId,
+        studentId: userId,
+        status: "ACCEPTED",
+      },
+    });
+
+    if (!isFounder && !isAcceptedStudent) {
+      return NextResponse.json(
+        { error: "Access denied. Chat is only unlocked when a connection is accepted." },
+        { status: 403 }
+      );
+    }
+
     const { searchParams } = new URL(req.url);
     const cursor = searchParams.get("cursor");
 
@@ -21,10 +49,6 @@ export async function GET(
     });
 
     if (!chat) {
-      // Verify the project exists before creating a chat
-      const project = await prisma.project.findUnique({ where: { id: projectId } });
-      if (!project) return NextResponse.json({ error: "Project not found" }, { status: 404 });
-
       chat = await prisma.directChat.create({
         data: { projectId },
       });
@@ -48,13 +72,41 @@ export async function GET(
 
 export async function POST(
   req: Request,
-  { params }: { params: Promise<{ projectId: string }> }
+  { params }: { params: any }
 ) {
   try {
     const session = await getServerSession(authOptions);
     if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const { projectId } = await params;
+    const userId = (session.user as any).id;
+
+    // Gatekeep access: Only project founder or accepted student can post messages
+    const project = await prisma.project.findUnique({
+      where: { id: projectId },
+      select: { founderId: true },
+    });
+
+    if (!project) {
+      return NextResponse.json({ error: "Project not found" }, { status: 404 });
+    }
+
+    const isFounder = project.founderId === userId;
+    const isAcceptedStudent = await prisma.connection.findFirst({
+      where: {
+        projectId,
+        studentId: userId,
+        status: "ACCEPTED",
+      },
+    });
+
+    if (!isFounder && !isAcceptedStudent) {
+      return NextResponse.json(
+        { error: "Access denied. Chat is only unlocked when a connection is accepted." },
+        { status: 403 }
+      );
+    }
+
     const { text, receiverId } = await req.json();
 
     // Auto-create chat room if it doesn't exist yet
@@ -63,9 +115,6 @@ export async function POST(
     });
 
     if (!chat) {
-      const project = await prisma.project.findUnique({ where: { id: projectId } });
-      if (!project) return NextResponse.json({ error: "Project not found" }, { status: 404 });
-
       chat = await prisma.directChat.create({
         data: { projectId },
       });
@@ -75,8 +124,8 @@ export async function POST(
       data: {
         text,
         chatId: chat.id,
-        senderId: (session.user as any).id,
-        receiverId: receiverId || (session.user as any).id,
+        senderId: userId,
+        receiverId: receiverId || userId,
       },
       include: { sender: { select: { name: true, id: true } } },
     });
